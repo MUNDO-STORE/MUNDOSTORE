@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Alerta de Fundos Imobiliários</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg1:#001f3f;--bg2:#002b55;--accent:#00ffea;--muted:rgba(255,255,255,0.75);--glass:rgba(255,255,255,0.06)}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:'Inter',Arial,sans-serif;background:linear-gradient(135deg,var(--bg1),var(--bg2));color:#fff}
+    header{text-align:center;padding:28px 18px}
+    h1{margin:0 0 6px 0;font-size:1.6rem;font-weight:800}
+    .sub{color:var(--muted);margin-bottom:10px}
+    .container-wrap{max-width:1100px;margin:18px auto;padding:16px}
+    .top-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+    .panel{background:linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.02));border-radius:12px;padding:18px;box-shadow:0 6px 28px rgba(0,0,0,0.45);flex:1;min-width:260px}
+    .controls{display:flex;gap:8px;flex-wrap:wrap}
+    .btn{background:var(--accent);color:#012;padding:8px 12px;border-radius:8px;border:none;font-weight:700;cursor:pointer}
+    .ghost{background:transparent;border:1px solid rgba(255,255,255,0.08);color:var(--muted);padding:8px 12px;border-radius:8px}
+    .container{margin-top:16px;background:var(--glass);padding:18px;border-radius:12px}
+    .card{background:transparent;padding:12px;margin:10px 0;border-radius:10px;display:flex;justify-content:space-between;align-items:center;border:1px solid rgba(255,255,255,0.03)}
+    .card strong{font-size:1.05rem}
+    .price{font-weight:800}
+    .highlight{border:2px solid var(--accent);box-shadow:0 6px 22px rgba(0,255,234,0.08);background:linear-gradient(90deg,rgba(0,255,234,0.03),rgba(255,255,255,0.01))}
+    .alert{border:2px solid #ff5c5c;box-shadow:0 6px 22px rgba(255,92,92,0.06)}
+    .pulse{animation:pulse 1.6s infinite}
+    @keyframes pulse{0%{box-shadow:0 0 0 rgba(255,92,92,0.3)}50%{box-shadow:0 0 12px rgba(255,92,92,0.25)}100%{box-shadow:0 0 0 rgba(255,92,92,0)}}
+    .footer{text-align:center;padding:14px;margin-top:12px;color:var(--muted)}
+    .badge{display:inline-flex;align-items:center;gap:8px;background:rgba(0,0,0,0.3);padding:6px 10px;border-radius:999px;font-weight:700}
+    .check{color:var(--accent);font-weight:900}
+    #chart-wrap{height:250px}
+    input,select{background:transparent;border:1px solid rgba(255,255,255,0.06);padding:8px 10px;border-radius:8px;color:#fff}
+    label{display:block;font-size:0.85rem;color:var(--muted);margin-bottom:6px}
+    .small{font-size:0.9rem;color:var(--muted)}
+    .market-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+    .mini-panel{text-align:center;min-width:160px}
+    @media (max-width:760px){h1{font-size:1.2rem}.top-row{flex-direction:column}.panel{width:100%}}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="badge"><span class="check">✔</span>
+      <div>
+        <div style="font-size:0.95rem;font-weight:800">Destaque automático do FII com maior preço</div>
+        <div class="small">Atualiza e notifica quando muda o destaque — MXRF11 prioridade</div>
+      </div>
+    </div>
+    <h1>📈 Alerta Automático de Fundos Imobiliários</h1>
+    <div class="sub">Painel com dados em tempo real — FIIs, dólar e criptomoedas</div>
+  </header>
+
+  <div class="container-wrap">
+    <div class="top-row">
+      <div class="panel">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div style="font-weight:800">Configurações</div>
+            <div class="small">Como obter os preços</div>
+          </div>
+          <div class="controls">
+            <button class="btn" id="btn-fetch">Buscar agora</button>
+            <button class="ghost" id="btn-zip">Gerar ZIP</button>
+          </div>
+        </div>
+
+        <div style="margin-top:12px">
+          <label>Fonte de dados</label>
+          <select id="data-source">
+            <option value="mock">Simulado (demo)</option>
+            <option value="fundsexplorer">FundsExplorer (recomendada)</option>
+            <option value="personal">Endpoint personalizado</option>
+          </select>
+          <div id="endpoint-row" style="margin-top:8px;display:none">
+            <label>Endpoint (GET JSON)</label>
+            <input id="endpoint" placeholder="https://api.seuservico.com/fundos" />
+            <div class="small">O endpoint deve retornar array de {nome, preco}</div>
+          </div>
+
+          <div style="display:flex;gap:8px;margin-top:10px;align-items:center">
+            <label style="margin:0">Atualização automática</label>
+            <select id="interval">
+              <option value="5000">5s</option>
+              <option value="10000">10s</option>
+              <option value="30000">30s</option>
+              <option value="60000" selected>60s</option>
+            </select>
+            <button class="ghost" id="toggle-notify">🔔 Permitir Notificações</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div style="font-weight:800">Visual / Temas</div>
+        <div class="small" style="margin-top:6px">Personalize cores e fonte</div>
+        <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+          <button class="ghost" id="theme-default">Padrão</button>
+          <button class="ghost" id="theme-dark">Escuro</button>
+          <button class="ghost" id="theme-light">Claro</button>
+        </div>
+
+        <div style="margin-top:12px">
+          <label>Fonte</label>
+          <select id="font-family">
+            <option value="Inter, Arial, sans-serif">Inter</option>
+            <option value="Arial, Helvetica, sans-serif">Arial</option>
+            <option value="'Courier New', monospace">Monospace</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <!-- CARDS MERCADO GLOBAL -->
+      <div class="market-row">
+        <div class="panel mini-panel">
+          <div style="font-weight:800">Dólar (USD)</div>
+          <div id="usd" style="font-size:1.2rem;font-weight:800;margin-top:6px">—</div>
+          <div class="small">Prev. 1h: <span id="usd-prev-1h">—</span></div>
+        </div>
+        <div class="panel mini-panel">
+          <div style="font-weight:800">Bitcoin (BTC)</div>
+          <div id="btc" style="font-size:1.2rem;font-weight:800;margin-top:6px">—</div>
+          <div class="small">Prev. 1h: <span id="btc-prev-1h">—</span></div>
+        </div>
+        <div class="panel mini-panel">
+          <div style="font-weight:800">Ethereum (ETH)</div>
+          <div id="eth" style="font-size:1.2rem;font-weight:800;margin-top:6px">—</div>
+          <div class="small">Prev. 1h: <span id="eth-prev-1h">—</span></div>
+        </div>
+        <div class="panel mini-panel">
+          <div style="font-weight:800">USDC (USD Coin)</div>
+          <div id="usdc" style="font-size:1.2rem;font-weight:800;margin-top:6px">—</div>
+          <div class="small">Prev. 1h: <span id="usdc-prev-1h">—</span></div>
+        </div>
+      </div>
+
+      <div style="font-size:0.85rem;color:var(--muted);margin-bottom:6px">Última atualização: <span id="last-update">—</span></div>
+      <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;justify-content:space-between">
+        <div style="font-weight:800">Lista de Fundos (somente com queda)</div>
+        <div class="small">Top: <span id="top-name">—</span> <span id="top-price"></span></div>
+      </div>
+
+      <div id="lista-fundos" style="margin-top:12px">
+        <!-- Cards dinâmicos -->
+      </div>
+
+      <div style="margin-top:18px">
+        <div style="font-weight:800;margin-bottom:8px">Gráfico de Variação (últimas atualizações)</div>
+        <div id="chart-wrap"><canvas id="chart"></canvas></div>
+      </div>
+    </div>
+
+    <div class="footer">Sistema de monitoramento FIIs • Exporta ZIP com arquivos prontos para hospedagem</div>
+  </div>
+
+  <!-- Dependências CDN: Chart.js e JSZip -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.0/dist/jszip.min.js"></script>
+
+  <script>
+    // ------- Dados iniciais (demo) -------
+    let ultimaAtualizacao = null;
+    let fundos = [
+      { nome: 'HGLG11', preco: 167.20 },
+      { nome: 'MXRF11', preco: 10.45 },
+      { nome: 'VISC11', preco: 112.80 },
+      { nome: 'KNRI11', preco: 149.10 },
+      { nome: 'XPML11', preco: 112.00 }
+    ];
+
+    // histórico para gráfico e comparação
+    const historico = {};
+    fundos.forEach(f => { historico[f.nome] = [f.preco]; });
+
+    // elementos
+    const listaEl = document.getElementById('lista-fundos');
+    const topNameEl = document.getElementById('top-name');
+    const topPriceEl = document.getElementById('top-price');
+
+    // Chart.js setup
+    const ctx = document.getElementById('chart').getContext('2d');
+    const chart = new Chart(ctx, {
+      type: 'line',
+      data: { labels: [], datasets: [] },
+      options: { animation: false, responsive: true, maintainAspectRatio: false, plugins:{legend:{display:false}} }
+    });
+
+    function renderChart() {
+      const maxLen = Math.max(...Object.values(historico).map(a=>a.length));
+      const labels = Array.from({length: maxLen}, (_,i)=>i+1);
+      chart.data.labels = labels;
+      chart.data.datasets = Object.keys(historico).map((nome, idx) => ({
+        label: nome,
+        data: historico[nome].slice(),
+        fill: false,
+        tension: 0.3
+      }));
+      chart.update();
+    }
+
+    // ---------- FETCH MXRF11 via Yahoo Finance (priority) ----------
+    async function fetchMXRF() {
+      try {
+        // Yahoo Finance quote endpoint
+        const url = 'https://query1.finance.yahoo.com/v7/finance/quote?symbols=MXRF11.SA';
+        const res = await fetch(url);
+        const j = await res.json();
+        const quote = j && j.quoteResponse && j.quoteResponse.result && j.quoteResponse.result[0];
+        if (quote && quote.regularMarketPrice) {
+          const price = Number(quote.regularMarketPrice);
+          // find MXRF in fundos and update, or add if missing
+          const idx = fundos.findIndex(f=>f.nome === 'MXRF11');
+          if (idx >= 0) { fundos[idx].preco = price; } else { fundos.push({ nome: 'MXRF11', preco: price }); }
+          historico['MXRF11'] = historico['MXRF11'] || [];
+          historico['MXRF11'].push(price);
+          if (historico['MXRF11'].length > 40) historico['MXRF11'].shift();
+        }
+      } catch (e) {
+        console.warn('Erro fetchMXRF (Yahoo)', e);
+        // fallback: não altera
+      }
+    }
+
+    // ---------- FETCH USDC via CoinGecko (recomendado) ----------
+    async function fetchUSDC() {
+      try {
+        const url = 'https://api.coingecko.com/api/v3/simple/price?ids=usd-coin&vs_currencies=usd,brl&include_24hr_change=true';
+        const res = await fetch(url);
+        const j = await res.json();
+        if (j && j['usd-coin']) {
+          const usd = Number(j['usd-coin'].usd);
+          document.getElementById('usdc').textContent = usd.toFixed(6) + ' USD';
+          document.getElementById('usdc-prev-1h').textContent = preverFuturo(usd,'1h').toFixed(6);
+        }
+      } catch (e) {
+        console.warn('Erro fetchUSDC', e);
+      }
+    }
+
+    // atualiza UI: mostra apenas fundos que caíram desde a última medição
+    function atualizarTela(){
+      ultimaAtualizacao = new Date();
+      document.getElementById('last-update').textContent = ultimaAtualizacao.toLocaleString();
+
+      listaEl.innerHTML = '';
+
+      // encontra maior (entre todos os fundos atuais)
+      const maior = fundos.reduce((max,item)=> item.preco > max.preco ? item : max, fundos[0]);
+
+      // ensure MXRF11 is prioritized in display (move to front)
+      fundos.sort((a,b)=> (a.nome==='MXRF11'? -1 : 0) - (b.nome==='MXRF11'? -1 : 0));
+
+      // atualiza topo
+      topNameEl.textContent = maior.nome;
+      topPriceEl.textContent = ' R$ ' + maior.preco.toFixed(2);
+
+      // mostra somente os que tiveram queda (comparando com penúltimo valor)
+      fundos.forEach(f => {
+        const hist = historico[f.nome] || [];
+        const anterior = hist.length >= 2 ? hist[hist.length - 2] : null;
+        const caiu = anterior !== null ? f.preco < anterior : false;
+        if (!caiu) return; // filtra
+
+        const card = document.createElement('div');
+        card.className = 'card';
+        // alerta visual se previsão indicar queda forte (simulação: queda futura > 5%)
+        const previsao1h = preverFuturo(f.preco, '1h');
+        const changePct = ((previsao1h - f.preco) / f.preco) * 100;
+        if (changePct < -5) { card.classList.add('alert','pulse'); }
+
+        card.innerHTML = `
+          <div>
+            <strong>${f.nome}</strong>
+            <div class="small">Últ. atualiz.: ${hist.length ? new Date().toLocaleString() : '—'}</div>
+          </div>
+          <div style="text-align:right">
+            <div class="price">R$ ${f.preco.toFixed(2)}</div>
+            <div class="small">Prev. 1h: R$ ${previsao1h.toFixed(2)}</div>
+          </div>
+        `;
+        listaEl.appendChild(card);
+      });
+
+      renderChart();
+
+      // notificar troca de topo
+      if (window._ultimoTopo && window._ultimoTopo !== maior.nome) {
+        notify(`Novo destaque: ${maior.nome} — R$ ${maior.preco.toFixed(2)}`);
+      }
+      window._ultimoTopo = maior.nome;
+    }
+
+    // simples função de previsão (placeholder) — gera estimativas para 1h/24h
+    function preverFuturo(valor, periodo='1h'){
+      const ranges = { '1h':[ -0.02, 0.02 ], '24h':[ -0.08, 0.08 ], '7d':[ -0.15, 0.15 ] };
+      const r = ranges[periodo] || ranges['1h'];
+      const fator = (Math.random() * (r[1] - r[0])) + r[0];
+      return +(valor * (1 + fator));
+    }
+
+    // Notificações do browser
+    function requestNotifyPermission(){
+      if (!('Notification' in window)) return alert('Notificações não suportadas');
+      Notification.requestPermission().then(p=>{ alert('Permissão: '+p); });
+    }
+    function notify(msg){ if (Notification.permission === 'granted') { new Notification('Alerta FIIs', { body: msg }); } }
+
+    // Simulação de atualização de preços (aplica oscilações e atualiza histórico)
+    function simularOscilacao(){
+      fundos.forEach(f=>{
+        const delta = (Math.random() * 4 - 2); // -2 a +2
+        f.preco = Math.max(0.01, +(f.preco + delta).toFixed(2));
+        historico[f.nome] = historico[f.nome] || [];
+        historico[f.nome].push(f.preco);
+        if (historico[f.nome].length > 40) historico[f.nome].shift();
+      });
+      atualizarTela();
+    }
+
+    // Busca dados via endpoint (espera array de {nome, preco})
+    async function fetchFromEndpoint(url){
+      try{
+        const res = await fetch(url);
+        const data = await res.json();
+        if (!Array.isArray(data)) { console.warn('Retorno inesperado do endpoint', data); return; }
+        fundos = data.map(d=>({ nome: d.nome||d.ticker||d.symbol, preco: Number(d.preco||d.price||d.vlr||d.lastPrice) }));
+        // atualiza historico
+        fundos.forEach(f=>{ historico[f.nome] = historico[f.nome] || []; historico[f.nome].push(f.preco); if (historico[f.nome].length>40) historico[f.nome].shift(); });
+        atualizarTela();
+      } catch(e){ console.error('Erro ao buscar endpoint', e); alert('Erro ao buscar endpoint: '+e.message); }
+    }
+
+    // API dólar (exemplo) e criptos (CoinCap) + CoinGecko USDC
+    async function atualizarDolar(){
+      try{
+        const r = await fetch('https://open.er-api.com/v6/latest/USD');
+        const j = await r.json();
+        if (j && j.rates && j.rates.BRL) {
+          const brl = Number(j.rates.BRL);
+          document.getElementById('usd').textContent = brl.toFixed(2);
+          document.getElementById('usd-prev-1h').textContent = preverFuturo(brl,'1h').toFixed(2);
+        }
+      }catch(e){ console.warn('Erro dólar',e); }
+    }
+
+    async function atualizarBTC(){
+      try{
+        const r = await fetch('https://api.coincap.io/v2/assets/bitcoin');
+        const j = await r.json();
+        const p = parseFloat(j.data.priceUsd);
+        document.getElementById('btc').textContent = p.toFixed(2);
+        document.getElementById('btc-prev-1h').textContent = preverFuturo(p,'1h').toFixed(2);
+      }catch(e){ console.warn('Erro BTC',e); }
+    }
+
+    async function atualizarETH(){
+      try{
+        const r = await fetch('https://api.coincap.io/v2/assets/ethereum');
+        const j = await r.json();
+        const p = parseFloat(j.data.priceUsd);
+        document.getElementById('eth').textContent = p.toFixed(2);
+        document.getElementById('eth-prev-1h').textContent = preverFuturo(p,'1h').toFixed(2);
+      }catch(e){ console.warn('Erro ETH',e); }
+    }
+
+    // UI event handlers
+    document.getElementById('btn-fetch').addEventListener('click', ()=>{
+      const src = document.getElementById('data-source').value;
+      if (src === 'mock') { simularOscilacao(); return; }
+      if (src === 'fundsexplorer') { fetchFromEndpoint('https://api.fundsexplorer.com.br/v1/funds'); return; }
+      if (src === 'personal') { const url = document.getElementById('endpoint').value.trim(); if (!url) return alert('Insira o endpoint personalizado'); fetchFromEndpoint(url); }
+    });
+
+    document.getElementById('data-source').addEventListener('change',(e)=>{ document.getElementById('endpoint-row').style.display = e.target.value === 'personal' ? 'block' : 'none'; });
+    document.getElementById('interval').addEventListener('change',(e)=>{ resetAuto(parseInt(e.target.value)); });
+    document.getElementById('toggle-notify').addEventListener('click', requestNotifyPermission);
+    document.getElementById('theme-default').addEventListener('click', ()=>{document.documentElement.style.setProperty('--bg1','#001f3f');document.documentElement.style.setProperty('--bg2','#002b55');document.documentElement.style.setProperty('--accent','#00ffea');document.body.style.color=''});
+    document.getElementById('theme-dark').addEventListener('click', ()=>{document.documentElement.style.setProperty('--bg1','#071022');document.documentElement.style.setProperty('--bg2','#0b1320');document.documentElement.style.setProperty('--accent','#9be5ff');document.body.style.color=''});
+    document.getElementById('theme-light').addEventListener('click', ()=>{document.documentElement.style.setProperty('--bg1','#f8fafc');document.documentElement.style.setProperty('--bg2','#e6eef6');document.documentElement.style.setProperty('--accent','#0b6bff');document.body.style.color='#052033'});
+    document.getElementById('font-family').addEventListener('change',(e)=>{document.body.style.fontFamily = e.target.value});
+
+    // ZIP generation
+    document.getElementById('btn-zip').addEventListener('click', async ()=>{
+      const zip = new JSZip();
+      const html = `<!doctype html><html><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>Alerta FIIs - Export</title><style>body{font-family:Arial,Helvetica,sans-serif;background:#071022;color:#fff;padding:20px}</style></head><body>${document.getElementById('lista-fundos').innerHTML}</body></html>`;
+      zip.file('index.html', html);
+      const content = await zip.generateAsync({type:'blob'});
+      const a = document.createElement('a'); a.href = URL.createObjectURL(content); a.download = 'landpage-fundos.zip'; a.click();
+    });
+
+    // auto update
+    let autoTimer = null;
+    function resetAuto(ms=10000){ if (autoTimer) clearInterval(autoTimer); autoTimer = setInterval(()=>{ const src = document.getElementById('data-source').value; if (src === 'mock') simularOscilacao(); else document.getElementById('btn-fetch').click(); }, ms); }
+
+    // inicialização
+    // Priority: fetch MXRF first via Yahoo, then others
+    async function initAll(){
+      await fetchMXRF();
+      await fetchUSDC();
+      atualizarDolar(); atualizarBTC(); atualizarETH();
+      setInterval(atualizarDolar, 60000); setInterval(atualizarBTC, 60000); setInterval(atualizarETH, 60000);
+      // also update MXRF and USDC periodically
+      setInterval(fetchMXRF, 15000); setInterval(fetchUSDC, 15000);
+      atualizarTela(); renderChart(); resetAuto(parseInt(document.getElementById('interval').value));
+    }
+
+    initAll();
+
+    // expose helpers
+    window._simular = simularOscilacao;
+    window._fetchFromEndpoint = fetchFromEndpoint;
+
+  </script>
+</body>
+</html>
