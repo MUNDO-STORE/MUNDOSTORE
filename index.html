@@ -65,48 +65,62 @@
         }
 
         .container {
-            max-width: 1000px;
+            max-width: 1200px;
             margin: auto;
             padding: 40px 20px;
             flex: 1;
         }
 
-        /* --- ROLETA --- */
-        .roulette-section {
-            background: var(--card-bg);
-            padding: 40px;
-            border-radius: var(--radius);
-            text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,.4);
+        /* AJUSTE PARA LADO A LADO */
+        .roulettes-wrapper {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
             margin-bottom: 60px;
         }
 
+        .roulette-section {
+            background: var(--card-bg);
+            padding: 30px 20px;
+            border-radius: var(--radius);
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,.4);
+            flex: 1;
+            min-width: 320px;
+            max-width: 500px;
+        }
+
         .roulette-title {
-            font-size: 1.4rem;
+            font-size: 1.1rem;
             color: #fff;
             margin-bottom: 25px;
             font-weight: 700;
             line-height: 1.4;
             text-transform: uppercase;
+            height: 80px; /* Alinha os textos */
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .color-legend {
             display: flex;
             justify-content: center;
-            gap: 20px;
+            gap: 15px;
             margin-bottom: 30px;
             font-weight: 700;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
         }
         .legend-item { display: flex; align-items: center; gap: 8px; }
-        .dot { width: 15px; height: 15px; border-radius: 50%; }
+        .dot { width: 12px; height: 12px; border-radius: 50%; }
         .dot.green { background: var(--success); box-shadow: 0 0 10px var(--success); }
         .dot.red { background: var(--danger); box-shadow: 0 0 10px var(--danger); }
 
         .roulette-wheel {
             position: relative;
-            width: 280px;
-            height: 280px;
+            width: 250px;
+            height: 250px;
             margin: 0 auto 30px;
         }
 
@@ -143,21 +157,22 @@
             background: linear-gradient(135deg, #ff3366, #ff6b35);
             border: none;
             color: #fff;
-            padding: 18px 40px;
-            font-size: 1.2rem;
+            padding: 15px 30px;
+            font-size: 1rem;
             font-weight: 900;
             border-radius: 50px;
             cursor: pointer;
             transition: 0.3s;
+            width: 100%;
         }
 
         .spin-button:disabled { opacity: .5; cursor: not-allowed; }
 
         .result-message {
-            margin: 20px 0;
-            font-size: 1.3rem;
+            margin: 15px 0;
+            font-size: 1.1rem;
             font-weight: 800;
-            min-height: 40px;
+            min-height: 30px;
         }
 
         /* --- SEÇÃO DE SERVIÇOS --- */
@@ -250,7 +265,6 @@
 
         .buy-btn:hover { background: #128c7e; }
 
-        /* --- BOTÕES SOCIAIS --- */
         .social-section { 
             margin: 40px auto 80px; 
             text-align: center;
@@ -282,7 +296,8 @@
 
         @media (max-width: 600px) {
             h1 { font-size: 1.8rem; }
-            .roulette-wheel { width: 250px; height: 250px; }
+            .roulette-wheel { width: 220px; height: 220px; }
+            .roulettes-wrapper { flex-direction: column; align-items: center; }
         }
     </style>
 </head>
@@ -302,26 +317,44 @@
     </header>
 
     <div class="container">
-        <section class="roulette-section">
-            <h2 class="roulette-title">
-                GIRE A ROLETA SE GANHAR VOCÊ PAGA SOMENTE R$4,00 PACK COM 25 MIL MÚSICAS MP3 SEM VINHETAS ATUALIZADAS E GANHA VIDEOCLIPES!
-            </h2>
+        
+        <div class="roulettes-wrapper">
+            <section class="roulette-section">
+                <h2 class="roulette-title">
+                    GIRE A ROLETA SE GANHAR VOCÊ PAGA SOMENTE R$4,00 PACK COM 25 MIL MÚSICAS MP3 SEM VINHETAS ATUALIZADAS E GANHA VIDEOCLIPES!
+                </h2>
+                <div class="color-legend">
+                    <div class="legend-item"><div class="dot green"></div><span>VERDE: GANHA!</span></div>
+                    <div class="legend-item"><div class="dot red"></div><span>VERMELHO: NÃO!</span></div>
+                </div>
+                <div class="roulette-wheel">
+                    <div class="pointer"></div>
+                    <div id="roulette1" class="roulette"></div>
+                </div>
+                <p id="resultMessage1" class="result-message"></p>
+                <div class="counter">Tentativas: <span id="tries1">0</span> / 3</div>
+                <button id="spinBtn1" class="spin-button">GIRAR ROLETA R$4,00</button>
+                <div id="countdown1" class="countdown"></div>
+            </section>
 
-            <div class="color-legend">
-                <div class="legend-item"><div class="dot green"></div><span>VERDE: GANHA!</span></div>
-                <div class="legend-item"><div class="dot red"></div><span>VERMELHO: NÃO GANHOU!</span></div>
-            </div>
-
-            <div class="roulette-wheel">
-                <div class="pointer"></div>
-                <div id="roulette" class="roulette"></div>
-            </div>
-
-            <p id="resultMessage" class="result-message"></p>
-            <div class="counter">Tentativas: <span id="tries">0</span> / 3</div>
-            <button id="spinBtn" class="spin-button">GIRAR ROLETA</button>
-            <div id="countdown" class="countdown"></div>
-        </section>
+            <section class="roulette-section">
+                <h2 class="roulette-title">
+                    GIRE A ROLETA SE GANHAR VOCÊ PAGA SOMENTE R$1,00 PACK COM 25 MIL MÚSICAS MP3 SEM VINHETAS ATUALIZADAS E GANHA VIDEOCLIPES!
+                </h2>
+                <div class="color-legend">
+                    <div class="legend-item"><div class="dot green"></div><span>VERDE: GANHA!</span></div>
+                    <div class="legend-item"><div class="dot red"></div><span>VERMELHO: NÃO!</span></div>
+                </div>
+                <div class="roulette-wheel">
+                    <div class="pointer"></div>
+                    <div id="roulette2" class="roulette"></div>
+                </div>
+                <p id="resultMessage2" class="result-message"></p>
+                <div class="counter">Tentativas: <span id="tries2">0</span> / 3</div>
+                <button id="spinBtn2" class="spin-button">GIRAR ROLETA R$1,00</button>
+                <div id="countdown2" class="countdown"></div>
+            </section>
+        </div>
 
         <div class="section-header">
             <h2>SERVIÇOS ONLINE E VENDAS</h2>
@@ -410,25 +443,101 @@
     </footer>
 
     <script>
-        let tries = 0;
-        const maxTries = 3;
-        let spinning = false;
-        const lockTime = 60;
-
-        const roulette = document.getElementById("roulette");
-        const spinBtn = document.getElementById("spinBtn");
-        const triesEl = document.getElementById("tries");
-        const result = document.getElementById("resultMessage");
-        const countdown = document.getElementById("countdown");
-        
         const soundRoleta = document.getElementById("roletaSound");
         const soundCaixa = document.getElementById("caixaSound");
         const soundWin = document.getElementById("winSound");
-
         if (soundRoleta) soundRoleta.loop = true;
 
-        const botoesServicos = document.querySelectorAll('#servicos-vendas .buy-btn');
-        botoesServicos.forEach(button => {
+        const greenSegments = [0, 2, 4];
+        const lockTime = 60;
+        const maxTries = 3;
+
+        // FUNÇÃO LÓGICA DA ROLETA
+        function setupRoulette(id, redirectUrl) {
+            let tries = 0;
+            let spinning = false;
+
+            const roulette = document.getElementById(`roulette${id}`);
+            const spinBtn = document.getElementById(`spinBtn${id}`);
+            const triesEl = document.getElementById(`tries${id}`);
+            const result = document.getElementById(`resultMessage${id}`);
+            const countdown = document.getElementById(`countdown${id}`);
+
+            function startCountdown() {
+                let timeLeft = lockTime;
+                spinBtn.disabled = true;
+                const interval = setInterval(() => {
+                    timeLeft--;
+                    countdown.textContent = `⏳ Aguarde ${timeLeft}s para resetar`;
+                    if (timeLeft <= 0) {
+                        clearInterval(interval);
+                        tries = 0;
+                        triesEl.textContent = "0";
+                        countdown.textContent = "";
+                        result.textContent = "";
+                        spinBtn.disabled = false;
+                        spinBtn.textContent = `GIRAR ROLETA`;
+                    }
+                }, 1000);
+            }
+
+            spinBtn.onclick = () => {
+                if (spinning || tries >= maxTries) return;
+
+                spinning = true;
+                spinBtn.disabled = true;
+                spinBtn.textContent = "SORTEANDO...";
+                result.textContent = "";
+
+                if (soundRoleta) {
+                    soundRoleta.currentTime = 0;
+                    soundRoleta.play().catch(() => {});
+                }
+
+                const segment = Math.floor(Math.random() * 6);
+                const rotation = (tries + 1) * 3600 + (segment * 60);
+                roulette.style.transform = `rotate(-${rotation}deg)`;
+
+                setTimeout(() => {
+                    if (soundRoleta) {
+                        soundRoleta.pause();
+                        soundRoleta.currentTime = 0;
+                    }
+
+                    tries++;
+                    triesEl.textContent = tries;
+
+                    if (greenSegments.includes(segment)) {
+                        if (soundWin) {
+                            soundWin.currentTime = 0;
+                            soundWin.play().catch(() => {});
+                        }
+                        result.style.color = "#00ff88";
+                        result.innerHTML = "🟢 PARABÉNS! VOCÊ GANHOU!";
+                        spinBtn.textContent = "REDIRECIONANDO...";
+                        setTimeout(() => { window.location.href = redirectUrl; }, 2000);
+                    } else {
+                        result.style.color = "#ff4757";
+                        result.innerHTML = "🔴 NÃO FOI DESSA VEZ!";
+                        if (tries >= maxTries) {
+                            spinBtn.textContent = "ESGOTADO";
+                            startCountdown();
+                        } else {
+                            spinBtn.disabled = false;
+                            spinBtn.textContent = "TENTAR NOVAMENTE";
+                        }
+                    }
+                    spinning = false;
+                }, 4000);
+            };
+        }
+
+        // Inicializa as duas roletas com seus respectivos links
+        setupRoulette(1, "https://wa.link/rhz7fa"); // Roleta de R$ 4,00
+        setupRoulette(2, "https://wa.link/sqsfkc"); // Roleta de R$ 1,00
+
+        // Efeito sonora nos botões de compra
+        document.querySelectorAll('.buy-btn').forEach(button => {
             button.addEventListener('click', () => {
                 if (soundCaixa) {
                     soundCaixa.currentTime = 0;
@@ -436,77 +545,6 @@
                 }
             });
         });
-
-        const greenSegments = [0, 2, 4]; 
-
-        function startCountdown() {
-            let timeLeft = lockTime;
-            spinBtn.disabled = true;
-            const interval = setInterval(() => {
-                timeLeft--;
-                countdown.textContent = `⏳ Muitas tentativas! Aguarde ${timeLeft}s para resetar`;
-                if (timeLeft <= 0) {
-                    clearInterval(interval);
-                    tries = 0;
-                    triesEl.textContent = "0";
-                    countdown.textContent = "";
-                    result.textContent = "";
-                    spinBtn.disabled = false;
-                    spinBtn.textContent = "GIRAR ROLETA";
-                }
-            }, 1000);
-        }
-
-        spinBtn.onclick = () => {
-            if (spinning || tries >= maxTries) return;
-
-            spinning = true;
-            spinBtn.disabled = true;
-            spinBtn.textContent = "SORTEANDO...";
-            result.textContent = "";
-
-            if (soundRoleta) {
-                soundRoleta.currentTime = 0;
-                soundRoleta.play().catch(() => {});
-            }
-
-            const segment = Math.floor(Math.random() * 6);
-            const rotation = (tries + 1) * 3600 + (segment * 60);
-            roulette.style.transform = `rotate(-${rotation}deg)`;
-
-            setTimeout(() => {
-                if (soundRoleta) {
-                    soundRoleta.pause();
-                    soundRoleta.currentTime = 0;
-                }
-
-                tries++;
-                triesEl.textContent = tries;
-
-                if (greenSegments.includes(segment)) {
-                    if (soundWin) {
-                        soundWin.currentTime = 0;
-                        soundWin.play().catch(() => {});
-                    }
-
-                    result.style.color = "#00ff88";
-                    result.innerHTML = "🟢 PARABÉNS! VOCÊ GANHOU O PACK!";
-                    spinBtn.textContent = "REDIRECIONANDO...";
-                    setTimeout(() => { window.location.href = "https://wa.link/rhz7fa"; }, 3000);
-                } else {
-                    result.style.color = "#ff4757";
-                    result.innerHTML = "🔴 NÃO FOI DESSA VEZ!";
-                    if (tries >= maxTries) {
-                        spinBtn.textContent = "TENTATIVAS ESGOTADAS";
-                        startCountdown();
-                    } else {
-                        spinBtn.disabled = false;
-                        spinBtn.textContent = "PRÓXIMA TENTATIVA";
-                    }
-                }
-                spinning = false;
-            }, 4000);
-        };
     </script>
 </body>
 </html>
